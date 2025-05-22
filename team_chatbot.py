@@ -7,8 +7,9 @@ from pathlib import Path
 from typing import List
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
 from langchain.document_loaders import PyPDFLoader, TextLoader
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -473,6 +474,38 @@ def load_documents(directory: str) -> List:
     
     return documents
 
+class SimpleVectorStore:
+    """Simple in-memory vector store using cosine similarity"""
+    def __init__(self, documents, embeddings):
+        self.documents = documents
+        self.embeddings = embeddings
+        self.embedding_model = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            model_kwargs={'device': 'cpu'}
+        )
+    
+    def similarity_search(self, query, k=3):
+        """Find most similar documents to query"""
+        if not self.documents:
+            return []
+        
+        try:
+            # Get query embedding
+            query_embedding = self.embedding_model.embed_query(query)
+            query_embedding = np.array(query_embedding).reshape(1, -1)
+            
+            # Calculate similarities
+            similarities = cosine_similarity(query_embedding, self.embeddings)[0]
+            
+            # Get top k indices
+            top_indices = np.argsort(similarities)[::-1][:k]
+            
+            # Return top documents
+            return [self.documents[i] for i in top_indices]
+        except Exception as e:
+            logger.error(f"Error in similarity search: {e}")
+            return self.documents[:k] if len(self.documents) >= k else self.documents
+
 @st.cache_resource
 def create_vectorstore(_documents: List):
     """Create and cache vector store"""
@@ -488,14 +521,19 @@ def create_vectorstore(_documents: List):
     
     chunks = text_splitter.split_documents(_documents)
     
-    embeddings = HuggingFaceEmbeddings(
+    # Create embeddings
+    embeddings_model = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2",
-        model_kwargs={'device': 'cpu'},
-        encode_kwargs={'normalize_embeddings': True}
+        model_kwargs={'device': 'cpu'}
     )
     
-    # Use FAISS instead of ChromaDB for better compatibility
-    vectorstore = FAISS.from_documents(chunks, embeddings)
+    # Get embeddings for all chunks
+    texts = [chunk.page_content for chunk in chunks]
+    embeddings = embeddings_model.embed_documents(texts)
+    embeddings_array = np.array(embeddings)
+    
+    # Create simple vector store
+    vectorstore = SimpleVectorStore(chunks, embeddings_array)
     
     return vectorstore
 
