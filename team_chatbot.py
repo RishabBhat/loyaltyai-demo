@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain.document_loaders import PyPDFLoader, TextLoader
 
 # Configure logging
@@ -79,6 +79,14 @@ USERS = {
         "team": "Agile",
         "manager": "Christopher Jimenez",
         "dashboard_type": "scrum_master"
+    },
+    "allesha.fogle": {
+        "password": hashlib.sha256("optum123".encode()).hexdigest(),
+        "name": "Allesha Fogle",
+        "role": "Engineering Manager",
+        "team": "Onshore Teams",
+        "manager": "Christopher Jimenez",
+        "dashboard_type": "engineering_manager"
     }
 }
 
@@ -191,6 +199,34 @@ DASHBOARD_DATA = {
             {"week": "Current", "engineer": "Scott Forsmann", "phone": "612-555-0134"},
             {"week": "Next", "engineer": "Ravali Botta", "phone": "612-555-0178"},
             {"week": "Following", "engineer": "Michael Joyce", "phone": "612-555-0189"}
+        ]
+    },
+    "engineering_manager": {
+        "direct_reports": [
+            {"name": "Rishab Bhat", "team": "Taj Mahal", "role": "Associate SWE", "current_sprint_load": "80%", "performance": "Meeting Expectations"},
+            {"name": "Britney Duratinsky", "team": "Taj Mahal", "role": "Associate SWE", "current_sprint_load": "95%", "performance": "Exceeds Expectations"},
+            {"name": "Scott Forsmann", "team": "Taj Mahal", "role": "Associate SWE", "current_sprint_load": "85%", "performance": "Meeting Expectations"},
+            {"name": "Michael Joyce", "team": "Machu Picchu", "role": "Senior SWE", "current_sprint_load": "90%", "performance": "Exceeds Expectations"},
+            {"name": "Sofia Khan", "team": "Machu Picchu", "role": "Associate SWE", "current_sprint_load": "75%", "performance": "Meeting Expectations"},
+            {"name": "Ravali Botta", "team": "Machu Picchu", "role": "Software Engineer", "current_sprint_load": "100%", "performance": "Exceeds Expectations"}
+        ],
+        "team_performance": {
+            "taj_mahal": {"velocity": 42, "target": 45, "efficiency": "93%", "satisfaction": 4.1, "issues": 1},
+            "machu_picchu": {"velocity": 38, "target": 40, "efficiency": "95%", "satisfaction": 4.3, "issues": 2}
+        },
+        "upcoming_reviews": [
+            {"employee": "Rishab Bhat", "type": "Quarterly Review", "date": "2025-02-15", "status": "Scheduled"},
+            {"employee": "Michael Joyce", "type": "Promotion Discussion", "date": "2025-02-20", "status": "Prep Needed"},
+            {"employee": "Sofia Khan", "type": "Career Planning", "date": "2025-02-25", "status": "Scheduled"}
+        ],
+        "budget_overview": {
+            "team_salary_budget": {"used": 2.1, "allocated": 2.3, "percentage": 91},
+            "contractor_budget": {"used": 0.8, "allocated": 1.0, "percentage": 80},
+            "training_budget": {"used": 15000, "allocated": 25000, "percentage": 60}
+        },
+        "hiring_pipeline": [
+            {"position": "Senior Software Engineer", "team": "Taj Mahal", "candidates": 3, "stage": "Final Interviews"},
+            {"position": "Associate Software Engineer", "team": "Machu Picchu", "candidates": 2, "stage": "Technical Screen"}
         ]
     },
     "senior_engineer": {
@@ -458,11 +494,8 @@ def create_vectorstore(_documents: List):
         encode_kwargs={'normalize_embeddings': True}
     )
     
-    vectorstore = Chroma.from_documents(
-        documents=chunks,
-        embedding=embeddings,
-        persist_directory="./team_chroma_db"
-    )
+    # Use FAISS instead of ChromaDB for better compatibility
+    vectorstore = FAISS.from_documents(chunks, embeddings)
     
     return vectorstore
 
@@ -623,6 +656,73 @@ def render_senior_engineer_dashboard(user_info):
                 st.info(f"Opening architecture decision: {decision['topic']}")
             st.markdown(f'<div class="{card_class}"><strong>{decision["topic"]}</strong><br>Owner: {decision["owner"]}<br><span class="status-badge">{decision["status"]}</span></div>', unsafe_allow_html=True)
 
+def render_engineering_manager_dashboard(user_info):
+    """Render dashboard for engineering manager"""
+    st.markdown(f"### 👩‍💼 {user_info['name']} - Engineering Manager")
+    
+    # Team performance overview
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown('<div class="dashboard-card-success"><div class="metric-number">12</div><strong>Direct Reports</strong><br><small>Onshore Teams</small></div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="dashboard-card-alt"><div class="metric-number">4.2</div><strong>Avg Team Satisfaction</strong><br><small>Target: 4.0</small></div>', unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown('<div class="dashboard-card"><div class="metric-number">94%</div><strong>Team Efficiency</strong><br><small>Sprint Completion</small></div>', unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown('<div class="dashboard-card-success"><div class="metric-number">5</div><strong>Open Positions</strong><br><small>Hiring Pipeline</small></div>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 👥 Direct Reports Performance")
+        for i, report in enumerate(DASHBOARD_DATA["engineering_manager"]["direct_reports"]):
+            card_class = "dashboard-card-success" if report['performance'] == 'Exceeds Expectations' else "dashboard-card-alt" if report['performance'] == 'Meeting Expectations' else "dashboard-card"
+            
+            if st.button(f"1:1 with {report['name']}", key=f"report_{i}"):
+                st.info(f"Scheduling 1:1 meeting with {report['name']}...")
+            
+            st.markdown(f'<div class="{card_class}"><strong>{report["name"]}</strong> - {report["team"]}<br>{report["role"]} | Load: {report["current_sprint_load"]}<br><span class="status-badge">{report["performance"]}</span></div>', unsafe_allow_html=True)
+        
+        st.markdown("#### 📊 Team Performance Metrics")
+        for team, performance in DASHBOARD_DATA["engineering_manager"]["team_performance"].items():
+            card_class = "dashboard-card-success" if performance['efficiency'] == '95%' else "dashboard-card-alt"
+            velocity_pct = round((performance['velocity'] / performance['target']) * 100)
+            
+            st.markdown(f'<div class="{card_class}"><strong>{team.replace("_", " ").title()} Team</strong><br>Velocity: {performance["velocity"]}/{performance["target"]} ({velocity_pct}%)<br>Satisfaction: {performance["satisfaction"]}/5.0 | Issues: {performance["issues"]}<br><span class="status-badge">{performance["efficiency"]} Efficiency</span></div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("#### 📅 Upcoming Reviews")
+        for i, review in enumerate(DASHBOARD_DATA["engineering_manager"]["upcoming_reviews"]):
+            card_class = "dashboard-card-danger" if review['status'] == 'Prep Needed' else "dashboard-card"
+            
+            if st.button(f"Prepare {review['type']}", key=f"review_{i}"):
+                st.info(f"Opening preparation notes for {review['employee']} {review['type']}...")
+            
+            st.markdown(f'<div class="{card_class}"><strong>{review["employee"]}</strong><br>{review["type"]}<br>📅 {review["date"]}<br><span class="status-badge">{review["status"]}</span></div>', unsafe_allow_html=True)
+        
+        st.markdown("#### 💰 Budget Overview")
+        budget = DASHBOARD_DATA["engineering_manager"]["budget_overview"]
+        
+        for budget_type, data in budget.items():
+            card_class = "dashboard-card-success" if data['percentage'] < 85 else "dashboard-card" if data['percentage'] < 95 else "dashboard-card-danger"
+            budget_name = budget_type.replace('_', ' ').title()
+            
+            if budget_type == "training_budget":
+                st.markdown(f'<div class="{card_class}"><strong>{budget_name}</strong><br>${data["used"]:,} / ${data["allocated"]:,}<br><span class="status-badge">{data["percentage"]}% Used</span></div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="{card_class}"><strong>{budget_name}</strong><br>${data["used"]}M / ${data["allocated"]}M<br><span class="status-badge">{data["percentage"]}% Used</span></div>', unsafe_allow_html=True)
+        
+        st.markdown("#### 🎯 Active Hiring")
+        for i, hire in enumerate(DASHBOARD_DATA["engineering_manager"]["hiring_pipeline"]):
+            if st.button(f"Review {hire['position']} Candidates", key=f"hire_{i}"):
+                st.info(f"Opening candidate pipeline for {hire['position']}...")
+            
+            st.markdown(f'<div class="dashboard-card-alt"><strong>{hire["position"]}</strong><br>Team: {hire["team"]}<br>Candidates: {hire["candidates"]} | Stage: {hire["stage"]}<br><div class="clickable-button">👥 Review Pipeline</div></div>', unsafe_allow_html=True)
+
 def render_product_manager_dashboard(user_info):
     """Render dashboard for product manager"""
     st.markdown(f"### 📊 {user_info['name']} - Product Dashboard")
@@ -751,6 +851,8 @@ def main():
             render_product_manager_dashboard(user_info)
         elif user_info['dashboard_type'] == 'scrum_master':
             render_scrum_master_dashboard(user_info)
+        elif user_info['dashboard_type'] == 'engineering_manager':
+            render_engineering_manager_dashboard(user_info)
     
     with tab2:
         documents = load_documents(docs_directory)
