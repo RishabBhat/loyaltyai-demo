@@ -1,0 +1,116 @@
+{
+  "loyalty_organization": {
+    "leadership": {
+      "director": {
+        "name": "Christopher Jimenez",
+        "email": "christopher.jimenez@optum.com",
+        "role": "Engineering Director - Loyalty Platform"
+      },
+      "manager": {
+        "name": "Allesha Fogle", 
+        "email": "allesha.fogle@optum.com",
+        "phone": "612-555-0147",
+        "role": "Engineering Manager - Onshore Teams",
+        "teams_managed": ["Taj Mahal", "Machu Picchu"]
+      }
+    },
+    "product_team": {
+      "product_manager": {
+        "name": "Connie Cavallo",
+        "email": "connie.cavallo@optum.com", 
+        "phone": "612-555-0189",
+        "role": "Senior Product Manager"
+      },
+      "scrum_master": {
+        "name": "Swapna Kolimi",
+        "email": "swapna.kolimi@optum.com",
+        "phone": "612-555-0156", 
+        "role": "Scrum Master"
+      }
+    },
+    "engineering_teams": {
+      "taj_mahal": {
+        "focus": "Loyalty-Member service and core platform features",
+        "members": [
+          {
+            "name": "Britney Duratinsky",
+            "email": "britney.duratinsky@optum.com",
+            "phone": "612-555-0123",
+            "role": "Associate Software Engineer"
+          },
+          {
+            "name": "Scott Forsmann", 
+            "email": "scott.forsmann@optum.com",
+            "phone": "612-555-0134",
+            "role": "Associate Software Engineer"
+          },
+          {
+            "name": "Kavya Kali",
+            "email": "kavya.kali@optum.com",
+            "phone": "612-555-0145",
+            "role": "Software Engineer Contractor"
+          }
+        ]
+      },
+      "machu_picchu": {
+        "focus": "Loyalty-Eligibility and integration services", 
+        "members": [
+          {
+            "name": "Sofia Khan",
+            "email": "sofia.khan@optum.com", 
+            "phone": "612-555-0167",
+            "role": "Associate Software Engineer"
+          },
+          {
+            "name": "Ravali Botta",
+            "email": "ravali.botta@optum.com",
+            "phone": "612-555-0178", 
+            "role": "Software Engineer"
+          },
+          {
+            "name": "Michael Joyce",
+            "email": "michael.joyce@optum.com",
+            "phone": "612-555-0189",
+            "role": "Associate Software Engineer"
+          },
+          {
+            "name": "Shasikumar Bommineni",
+            "email": "shasikumar.bommineni@optum.com",
+            "phone": "612-555-0190",
+            "role": "Software Engineer Contractor"
+          },
+          {
+            "name": "Ganesh Nettem", 
+            "email": "ganesh.nettem@optum.com",
+            "phone": "612-555-0201",
+            "role": "Software Engineer Contractor"
+          },
+          {
+            "name": "Nagarjuna Reddy",
+            "email": "nagarjuna.reddy@optum.com",
+            "phone": "612-555-0212",
+            "role": "Software Engineer"
+          },
+          {
+            "name": "Ajit Krishnan",
+            "email": "ajit.krishnan@optum.com", 
+            "phone": "612-555-0223",
+            "role": "Software Engineer"
+          }
+        ]
+      }
+    }
+  },
+  "on_call_rotation": {
+    "current_week": "Scott Forsmann",
+    "next_week": "Ravali Botta", 
+    "escalation_primary": "Allesha Fogle",
+    "escalation_secondary": "Christopher Jimenez"
+  },
+  "emergency_contacts": {
+    "production_incidents": "loyalty-oncall@optum.com",
+    "database_issues": "dba-team@optum.com",
+    "kubernetes_platform": "platform-team@optum.com",
+    "security_incidents": "security@optum.com"
+  }
+}

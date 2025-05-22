@@ -1,0 +1,50 @@
+Sprint 23 Planning - Loyalty Platform
+Sprint Dates: January 15 - January 29, 2025
+
+SPRINT GOAL: Kafka Migration Phase 1 - Eliminate Top of Funnel Script Dependencies
+
+KEY INITIATIVES:
+1. Replace Top of Funnel script with real-time Kafka-based eligibility processing
+2. Implement automated spouse assignment workflow
+3. Fix dual eligibility conflict resolution
+4. Database performance improvements for member lookup queries
+
+USER STORIES - TAJ MAHAL TEAM:
+- [LY-1847] As a system, I need to process eligibility updates via Kafka instead of batch scripts
+- [LY-1848] As a member, I want my spouse to be automatically assigned to my family membership
+- [LY-1849] As a developer, I need improved database query performance for member searches
+- [LY-1850] As a system, I need to handle dual eligibility scenarios without manual intervention
+
+USER STORIES - MACHU PICCHU TEAM:  
+- [LY-1851] As a member, I want my fitness device data to sync reliably without delays
+- [LY-1852] As a system, I need to migrate eligibility rules from Top of Funnel to event-driven processing
+- [LY-1853] As a support agent, I need better error messages for eligibility failures
+- [LY-1854] As a developer, I need monitoring alerts for Kafka consumer lag
+
+TECHNICAL DEBT:
+- Remove deprecated Top of Funnel script dependencies
+- Update member eligibility documentation
+- Refactor spouse assignment logic for better error handling
+- Add comprehensive unit tests for dual eligibility scenarios
+
+DEPENDENCIES:
+- Platform team: Kafka topic creation and permissions
+- DBA team: Database index optimization review
+- Security team: New service-to-service authentication tokens
+
+RISKS:
+- Top of Funnel script still needed as fallback during transition
+- Dual eligibility logic complexity may cause delays
+- Kafka consumer performance under high load needs validation
+
+TEAM CAPACITY:
+- Taj Mahal: 42 story points planned, 45 point velocity
+- Machu Picchu: 38 story points planned, 40 point velocity
+
+DEFINITION OF DONE:
+- All code reviewed and approved
+- Unit tests with 80%+ coverage
+- Integration tests passing in dev and stage
+- Performance tests completed
+- Documentation updated
+- Deployed to stage environment
